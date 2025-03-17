@@ -1,0 +1,19 @@
+[project]
+name = "hfjobs"
+version = "0.0.1.dev0"
+description = "Tools for Hugging Face Jobs"
+authors = [
+    {name = "Quentin Lhoest"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests (>=2.32.2)"
+]
+
+[project.scripts]
+hfjobs = 'hfjobs.console:run'
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
