@@ -1,3 +1,4 @@
+import json
 from argparse import _SubParsersAction, Namespace
 from typing import Optional
 
@@ -15,11 +16,15 @@ class PsCommand(BaseCommand):
     def register_subcommand(parser: _SubParsersAction) -> None:
         run_parser = parser.add_parser("ps", help="List Jobs")
         run_parser.add_argument(
+            "-a", "--all", action="store_true", help="Show all Jobs (default shows just running)"
+        )
+        run_parser.add_argument(
             "--token", type=str, help="A User Access Token generated from https://huggingface.co/settings/tokens"
         )
         run_parser.set_defaults(func=PsCommand)
 
     def __init__(self, args: Namespace) -> None:
+        self.all: bool = args.all
         self.token: Optional[str] = args.token or None
 
     def run(self) -> None:
@@ -38,10 +43,11 @@ class PsCommand(BaseCommand):
                     "dockerImage",
                     "hf.co/spaces/" + job["compute"]["spec"]["extra"]["input"]["spaceId"]
                 ),
-                str(job["compute"]["spec"]["extra"]["command"]),
+                json.dumps(" ".join(job["compute"]["spec"]["extra"]["command"])),
                 job["metadata"]["created_at"],
                 job["compute"]["status"]["stage"]
             ]
             for job in resp.json()
+            if self.all or job["compute"]["status"]["stage"] in ("RUNNING", "UPDATING")
         ]
         print(tabulate(rows, headers))
