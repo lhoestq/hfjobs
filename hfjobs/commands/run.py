@@ -25,20 +25,20 @@ class RunCommand(BaseCommand):
             "--flavor", type=str, help="Flavor for the hardware, as in HF Spaces.", default="cpu-basic"
         )
         run_parser.add_argument(
-            "--detach", action="store_true", help="Run the Job in the background and print the Job ID.", 
+            "-d", "--detach", action="store_true", help="Run the Job in the background and print the Job ID.", 
         )
         run_parser.add_argument(
             "--token", type=str, help="A User Access Token generated from https://huggingface.co/settings/tokens"
         )
         run_parser.add_argument(
-            "command", nargs="+", help="The command to run."
+            "command", nargs="...", help="The command to run."
         )
         run_parser.set_defaults(func=RunCommand)
 
     def __init__(self, args: Namespace) -> None:
         self.docker_image: str = args.dockerImage
         self.environment: dict[str, str] = {
-            x.split("=", 1)[0]: x.split("=", 1)[1].strip('"').strip("'")
+            x.split("=", 1)[0]: x.split("=", 1)[1]
             for x in args.env or []
         }
         self.flavor: str = args.flavor
@@ -79,26 +79,32 @@ class RunCommand(BaseCommand):
             print(job_id)
             return
 
-        resp = requests.get(
-            f"https://huggingface.co/api/jobs/{username}/{job_id}/logs-stream",
-            headers=headers,
-            stream=True
-        )
-        for line in resp.iter_lines():
-            line = line.decode("utf-8")
-            if line.startswith("data: {"):
-                data = json.loads(line[len("data: "):])
-                data, timestamp = data["data"], data["timestamp"]
-                print(f"[{timestamp}] {data}")
+        logging_finished = False
+        job_finished = False
+        # We need to retry because sometimes the /logs-stream doesn't return logs when the job just started.
+        # For example it can return only two lines: one for "Job started" and one empty line.
         while True:
+            resp = requests.get(
+                f"https://huggingface.co/api/jobs/{username}/{job_id}/logs-stream",
+                headers=headers,
+                stream=True,
+            )
+            log = None
+            for line in resp.iter_lines():
+                line = line.decode("utf-8")
+                if line and line.startswith("data: {"):
+                    data = json.loads(line[len("data: "):])
+                    # timestamp = data["timestamp"]
+                    if not data["data"].startswith("===== Job started"):
+                        log = data["data"]
+                        print(log)
+            logging_finished |= log is not None
+            if logging_finished or job_finished:
+                break
             job_status = requests.get(
                 f"https://huggingface.co/api/jobs/{username}/{job_id}",
-                headers=headers
+                headers=headers,
             ).json()
-            if job_status["status"]["stage"] == "RUNNING":
-                time.sleep(1)
-            else:
-                break
-        if job_status["status"]["stage"] != "COMPLETED":
-            print("Finished with an error ❌")
-            print(f'{job_status["status"]["message"]} ({job_status["status"]["error"]})')
+            if "status" in job_status and job_status["status"]["stage"] not in ("RUNNING", "UPDATING"):
+                job_finished = True
+            time.sleep(1)
