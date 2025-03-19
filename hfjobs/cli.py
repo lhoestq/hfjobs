@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 
+from .commands.logs import LogsCommand
 from .commands.ps import PsCommand
 from .commands.run import RunCommand
 
@@ -9,6 +10,7 @@ def main():
     commands_parser = parser.add_subparsers(help="hfjobs command helpers")
 
     # Register commands
+    LogsCommand.register_subcommand(commands_parser)
     PsCommand.register_subcommand(commands_parser)
     RunCommand.register_subcommand(commands_parser)
 
