@@ -39,9 +39,10 @@ class PsCommand(BaseCommand):
         rows = [
             [
                 job["metadata"]["id"],
-                job["compute"]["spec"]["extra"]["input"].get(
-                    "dockerImage",
-                    "hf.co/spaces/" + job["compute"]["spec"]["extra"]["input"]["spaceId"]
+                (
+                    job["compute"]["spec"]["extra"]["input"]["dockerImage"]
+                    if "dockerImage" in job["compute"]["spec"]["extra"]["input"]
+                    else "hf.co/spaces/" + job["compute"]["spec"]["extra"]["input"]["spaceId"]
                 ),
                 json.dumps(" ".join(job["compute"]["spec"]["extra"]["command"])),
                 job["metadata"]["created_at"],
