@@ -51,7 +51,6 @@ class RunCommand(BaseCommand):
         self.detach: bool = args.detach
         self.token: Optional[str] = args.token or None
         self.command: list[str] = args.command
-        raise ArithmeticError(str(self.environment))
 
 
     def run(self) -> None:
