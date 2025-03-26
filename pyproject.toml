@@ -1,6 +1,6 @@
 [project]
 name = "hfjobs"
-version = "0.1.0.dev0"
+version = "0.2.0"
 description = "Tools for Hugging Face Jobs"
 authors = [
     {name = "Quentin Lhoest"}
@@ -8,7 +8,8 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "requests (>=2.32.2)"
+    "requests (>=2.32.2)",
+    "python-dotenv",
 ]
 
 [project.scripts]
