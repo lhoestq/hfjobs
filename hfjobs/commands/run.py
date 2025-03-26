@@ -1,9 +1,11 @@
+import io
 import time
 from argparse import _SubParsersAction, Namespace
 from typing import Optional
 
 import json
 import requests
+from dotenv import dotenv_values
 from huggingface_hub import whoami
 from huggingface_hub.utils import build_hf_headers
 
@@ -19,7 +21,10 @@ class RunCommand(BaseCommand):
             "dockerImage", type=str, help="The Docker image to use."
         )
         run_parser.add_argument(
-            "-e", "--env", action="append", help="Read in a file of environment variables."
+            "-e", "--env", action="append", help="Set environment variables."
+        )
+        run_parser.add_argument(
+            "--env-file", type=str, help="Read in a file of environment variables."
         )
         run_parser.add_argument(
             "--flavor", type=str, help="Flavor for the hardware, as in HF Spaces.", default="cpu-basic"
@@ -37,14 +42,16 @@ class RunCommand(BaseCommand):
 
     def __init__(self, args: Namespace) -> None:
         self.docker_image: str = args.dockerImage
-        self.environment: dict[str, str] = {
-            x.split("=", 1)[0]: x.split("=", 1)[1]
-            for x in args.env or []
-        }
+        self.environment: dict[str, str] = {}
+        for env_value in args.env or []:
+            self.environment.update(dotenv_values(stream=io.StringIO(env_value)))
+        if args.env_file:
+            self.environment.update(dotenv_values(args.env_file))
         self.flavor: str = args.flavor
         self.detach: bool = args.detach
         self.token: Optional[str] = args.token or None
         self.command: list[str] = args.command
+        raise ArithmeticError(str(self.environment))
 
 
     def run(self) -> None:
