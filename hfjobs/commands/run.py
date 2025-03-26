@@ -88,8 +88,13 @@ class RunCommand(BaseCommand):
         timeout = 10
         logging_finished = False
         job_finished = False
-        # We need to retry because sometimes the /logs-stream doesn't return logs when the job just started.
-        # For example it can return only two lines: one for "Job started" and one empty line.
+        # - We need to retry because sometimes the /logs-stream doesn't return logs when the job just started.
+        #   (for example it can return only two lines: one for "Job started" and one empty line)
+        # - Timeouts can happen in case of build errors
+        # - ChunkedEncodingError can happen in case of stopped logging in the middle of streaming
+        # - Infinite empty log stream can happen in case of build error
+        #   (the logs stream is infinite and empty except for the Job started message)
+        #   But this is not handled atm :(
         while True:
             try:
                 resp = requests.get(
