@@ -12,6 +12,17 @@ from huggingface_hub.utils import build_hf_headers
 from . import BaseCommand
 
 
+def _parse_timeout(timeout: Optional[str]) -> Optional[int]:
+    """Get timeout in seconds"""
+    time_units_factors = {"s": 1, "m": 60, "h": 3600, "d": 3600 * 24}
+    if not timeout:
+        return None
+    elif timeout[-1] in time_units_factors:
+        return int(float(timeout[:-1]) * time_units_factors[timeout[-1]])
+    else:
+        return int(timeout)
+
+
 class RunCommand(BaseCommand):
 
     @staticmethod
@@ -28,6 +39,9 @@ class RunCommand(BaseCommand):
         )
         run_parser.add_argument(
             "--flavor", type=str, help="Flavor for the hardware, as in HF Spaces.", default="cpu-basic"
+        )
+        run_parser.add_argument(
+            "--timeout", type=str, help="Max duration: int/float with s (seconds, default), m (minutes), h (hours) or d (days)."
         )
         run_parser.add_argument(
             "-d", "--detach", action="store_true", help="Run the Job in the background and print the Job ID.", 
@@ -48,18 +62,23 @@ class RunCommand(BaseCommand):
         if args.env_file:
             self.environment.update(dotenv_values(args.env_file))
         self.flavor: str = args.flavor
+        self.timeout: Optional[int] = _parse_timeout(args.timeout)
         self.detach: bool = args.detach
-        self.token: Optional[str] = args.token or None
+        self.token: Optional[str] = args.token
         self.command: list[str] = args.command
 
-
     def run(self) -> None:
+        # prepare paypload to send to HF Jobs API
         input_json = {
             "command":  self.command,
             "arguments": [],
             "environment": self.environment,
             "flavor": self.flavor
         }
+        # timeout is optional
+        if self.timeout:
+            input_json["timeout"] = self.timeout
+        # input is either from docker hub or from HF spaces
         for prefix in (
             "https://huggingface.co/spaces/",
             "https://hf.co/spaces/",
@@ -84,6 +103,8 @@ class RunCommand(BaseCommand):
         if self.detach:
             print(job_id)
             return
+
+        # Now let's stream the logs
 
         timeout = 10
         logging_finished = False
