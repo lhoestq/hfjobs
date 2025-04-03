@@ -38,20 +38,28 @@ class RunCommand(BaseCommand):
             "--env-file", type=str, help="Read in a file of environment variables."
         )
         run_parser.add_argument(
-            "--flavor", type=str, help="Flavor for the hardware, as in HF Spaces.", default="cpu-basic"
+            "--flavor",
+            type=str,
+            help="Flavor for the hardware, as in HF Spaces.",
+            default="cpu-basic",
         )
         run_parser.add_argument(
-            "--timeout", type=str, help="Max duration: int/float with s (seconds, default), m (minutes), h (hours) or d (days)."
+            "--timeout",
+            type=str,
+            help="Max duration: int/float with s (seconds, default), m (minutes), h (hours) or d (days).",
         )
         run_parser.add_argument(
-            "-d", "--detach", action="store_true", help="Run the Job in the background and print the Job ID.", 
+            "-d",
+            "--detach",
+            action="store_true",
+            help="Run the Job in the background and print the Job ID.",
         )
         run_parser.add_argument(
-            "--token", type=str, help="A User Access Token generated from https://huggingface.co/settings/tokens"
+            "--token",
+            type=str,
+            help="A User Access Token generated from https://huggingface.co/settings/tokens",
         )
-        run_parser.add_argument(
-            "command", nargs="...", help="The command to run."
-        )
+        run_parser.add_argument("command", nargs="+", help="The command to run.")
         run_parser.set_defaults(func=RunCommand)
 
     def __init__(self, args: Namespace) -> None:
@@ -70,10 +78,10 @@ class RunCommand(BaseCommand):
     def run(self) -> None:
         # prepare paypload to send to HF Jobs API
         input_json = {
-            "command":  self.command,
+            "command": self.command,
             "arguments": [],
             "environment": self.environment,
-            "flavor": self.flavor
+            "flavor": self.flavor,
         }
         # timeout is optional
         if self.timeout:
@@ -86,7 +94,7 @@ class RunCommand(BaseCommand):
             "hf.co/spaces/",
         ):
             if self.docker_image.startswith(prefix):
-                input_json["spaceId"] = self.docker_image[len(prefix):]
+                input_json["spaceId"] = self.docker_image[len(prefix) :]
                 break
         else:
             input_json["dockerImage"] = self.docker_image
@@ -98,10 +106,13 @@ class RunCommand(BaseCommand):
             headers=headers,
         )
         resp.raise_for_status()
+        response = resp.json()
+        # Fix: Update job_id extraction to match new response format
+        job_id = response["metadata"]["jobId"]
 
-        job_id = resp.json()["metadata"]["job_id"]
+        # Always print the job ID to the user
+        print(f"Job started with ID: {job_id}")
         if self.detach:
-            print(job_id)
             return
 
         # Now let's stream the logs
@@ -128,7 +139,7 @@ class RunCommand(BaseCommand):
                 for line in resp.iter_lines():
                     line = line.decode("utf-8")
                     if line and line.startswith("data: {"):
-                        data = json.loads(line[len("data: "):])
+                        data = json.loads(line[len("data: ") :])
                         # timestamp = data["timestamp"]
                         if not data["data"].startswith("===== Job started"):
                             log = data["data"]
@@ -137,17 +148,23 @@ class RunCommand(BaseCommand):
                 # Response ended prematurely
                 pass
             except requests.exceptions.ConnectionError as err:
-                if not err.__context__ or not isinstance(err.__context__.__cause__, TimeoutError):
+                if not err.__context__ or not isinstance(
+                    err.__context__.__cause__, TimeoutError
+                ):
                     raise
                 # Ignore timeout errors and reconnect
                 timeout = min(timeout * 2, 60)
             logging_finished |= log is not None
             if logging_finished or job_finished:
                 break
+            # Fix: Update job status check to match new response format
             job_status = requests.get(
                 f"https://huggingface.co/api/jobs/{username}/{job_id}",
                 headers=headers,
             ).json()
-            if "status" in job_status and job_status["status"]["stage"] not in ("RUNNING", "UPDATING"):
+            if "status" in job_status and job_status["status"]["stage"] not in (
+                "RUNNING",
+                "UPDATING",
+            ):
                 job_finished = True
             time.sleep(1)
