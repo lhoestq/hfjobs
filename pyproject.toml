@@ -1,6 +1,6 @@
 [project]
 name = "hfjobs"
-version = "0.4.2.dev0"
+version = "0.4.2"
 description = "Tools for Hugging Face Jobs"
 authors = [
     {name = "Quentin Lhoest"}
