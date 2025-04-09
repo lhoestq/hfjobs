@@ -59,7 +59,7 @@ class RunCommand(BaseCommand):
             type=str,
             help="A User Access Token generated from https://huggingface.co/settings/tokens",
         )
-        run_parser.add_argument("command", nargs="+", help="The command to run.")
+        run_parser.add_argument("command", nargs="...", help="The command to run.")
         run_parser.set_defaults(func=RunCommand)
 
     def __init__(self, args: Namespace) -> None:
