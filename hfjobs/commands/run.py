@@ -35,7 +35,13 @@ class RunCommand(BaseCommand):
             "-e", "--env", action="append", help="Set environment variables."
         )
         run_parser.add_argument(
+            "-s", "--secret", action="append", help="Set secret environment variables."
+        )
+        run_parser.add_argument(
             "--env-file", type=str, help="Read in a file of environment variables."
+        )
+        run_parser.add_argument(
+            "--secret-env-file", type=str, help="Read in a file of secret environment variables."
         )
         run_parser.add_argument(
             "--flavor",
@@ -69,6 +75,11 @@ class RunCommand(BaseCommand):
             self.environment.update(dotenv_values(stream=io.StringIO(env_value)))
         if args.env_file:
             self.environment.update(dotenv_values(args.env_file))
+        self.secrets: dict[str, str] = {}
+        for secret in args.secret or []:
+            self.secrets.update(dotenv_values(stream=io.StringIO(secret)))
+        if args.secret_env_file:
+            self.secrets.update(dotenv_values(args.secret_env_file))
         self.flavor: str = args.flavor
         self.timeout: Optional[int] = _parse_timeout(args.timeout)
         self.detach: bool = args.detach
@@ -83,6 +94,9 @@ class RunCommand(BaseCommand):
             "environment": self.environment,
             "flavor": self.flavor,
         }
+        # secrets are optional
+        if self.secrets:
+            input_json["secrets"] = self.secrets
         # timeout is optional
         if self.timeout:
             input_json["timeout"] = self.timeout

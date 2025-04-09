@@ -37,12 +37,17 @@ positional arguments:
   command              The command to run.
 
 options:
-  -h, --help           show this help message and exit
-  -e ENV, --env ENV    Set environment variables.
-  --env-file ENV_FILE  Read in a file of environment variables.
-  --flavor FLAVOR      Flavor for the hardware, as in HF Spaces.
-  -d, --detach         Run the Job in the background and print the Job ID.
-  --token TOKEN        A User Access Token generated from https://huggingface.co/settings/tokens
+  -h, --help            show this help message and exit
+  -e ENV, --env ENV     Set environment variables.
+  -s SECRET, --secret SECRET
+                        Set secret environment variables.
+  --env-file ENV_FILE   Read in a file of environment variables.
+  --secret-env-file SECRET_ENV_FILE
+                        Read in a file of secret environment variables.
+  --flavor FLAVOR       Flavor for the hardware, as in HF Spaces.
+  --timeout TIMEOUT     Max duration: int/float with s (seconds, default), m (minutes), h (hours) or d (days).
+  -d, --detach          Run the Job in the background and print the Job ID.
+  --token TOKEN         A User Access Token generated from https://huggingface.co/settings/tokens
 ```
 
 ### Examples
