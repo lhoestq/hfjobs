@@ -39,7 +39,7 @@ class LogsCommand(BaseCommand):
             headers=headers,
         ).raise_for_status()
 
-        timeout = 10
+        logging_started = False
         logging_finished = False
         job_finished = False
         # - We need to retry because sometimes the /logs-stream doesn't return logs when the job just started.
@@ -48,33 +48,35 @@ class LogsCommand(BaseCommand):
         # - ChunkedEncodingError can happen in case of stopped logging in the middle of streaming
         # - Infinite empty log stream can happen in case of build error
         #   (the logs stream is infinite and empty except for the Job started message)
-        #   But this is not handled atm :(
+        # - there is a ": keep-alive" every 30 seconds
         while True:
             try:
                 resp = requests.get(
                     f"https://huggingface.co/api/jobs/{username}/{self.job_id}/logs-stream",
                     headers=headers,
                     stream=True,
-                    timeout=timeout,
+                    timeout=120,
                 )
                 log = None
-                for line in resp.iter_lines():
+                for line in resp.iter_lines(chunk_size=1):
                     line = line.decode("utf-8")
                     if line and line.startswith("data: {"):
                         data = json.loads(line[len("data: "):])
                         # timestamp = data["timestamp"]
                         if not data["data"].startswith("===== Job started"):
+                            logging_started = True
                             log = data["data"]
                             print(log)
+                logging_finished = logging_started
             except requests.exceptions.ChunkedEncodingError:
                 # Response ended prematurely
-                pass
+                break
+            except KeyboardInterrupt:
+                break
             except requests.exceptions.ConnectionError as err:
-                if not err.__context__ or not isinstance(err.__context__.__cause__, TimeoutError):
+                is_timeout = err.__context__ and isinstance(err.__context__.__cause__, TimeoutError)
+                if logging_started or not is_timeout:
                     raise
-                # Ignore timeout errors and reconnect
-                timeout = min(timeout * 2, 60)
-            logging_finished |= log is not None
             if logging_finished or job_finished:
                 break
             job_status = requests.get(
