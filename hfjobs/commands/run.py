@@ -99,7 +99,7 @@ class RunCommand(BaseCommand):
             input_json["secrets"] = self.secrets
         # timeout is optional
         if self.timeout:
-            input_json["timeout"] = self.timeout
+            input_json["timeoutSeconds"] = self.timeout
         # input is either from docker hub or from HF spaces
         for prefix in (
             "https://huggingface.co/spaces/",
