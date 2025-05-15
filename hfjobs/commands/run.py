@@ -131,7 +131,7 @@ class RunCommand(BaseCommand):
 
         # Now let's stream the logs
 
-        logging_finished = False
+        logging_finished = logging_started = False
         job_finished = False
         # - We need to retry because sometimes the /logs-stream doesn't return logs when the job just started.
         #   (for example it can return only two lines: one for "Job started" and one empty line)
