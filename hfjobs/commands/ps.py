@@ -90,21 +90,20 @@ class PsCommand(BaseCommand):
                     continue
 
                 # Extract job ID safely
-                job_id = job.get("metadata", {}).get("jobId", "N/A")
+                job_id = job.get("id", "N/A")
 
                 # Extract image or space information
-                spec = job.get("spec", {})
-                if "spaceId" in spec:
-                    image_or_space = f"hf.co/spaces/{spec['spaceId']}"
+                if "spaceId" in job and job["spaceId"] is not None:
+                    image_or_space = f"hf.co/spaces/{job['spaceId']}"
                 else:
-                    image_or_space = spec.get("dockerImage", "N/A")
+                    image_or_space = job.get("dockerImage", "N/A")
 
                 # Extract and format command
-                command = spec.get("command", [])
+                command = job.get("command", [])
                 command_str = " ".join(command) if command else "N/A"
 
                 # Extract creation time
-                created_at = job.get("metadata", {}).get("created_at", "N/A")
+                created_at = job.get("createdAt", "N/A")
 
                 # Create a dict with all job properties for filtering
                 job_properties = {

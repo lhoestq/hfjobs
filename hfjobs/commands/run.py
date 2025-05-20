@@ -122,7 +122,7 @@ class RunCommand(BaseCommand):
         resp.raise_for_status()
         response = resp.json()
         # Fix: Update job_id extraction to match new response format
-        job_id = response["metadata"]["jobId"]
+        job_id = response["id"]
 
         # Always print the job ID to the user
         print(f"Job started with ID: {job_id}")
