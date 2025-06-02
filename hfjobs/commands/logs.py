@@ -42,7 +42,7 @@ class LogsCommand(BaseCommand):
         logging_started = False
         logging_finished = False
         job_finished = False
-        # - We need to retry because sometimes the /logs-stream doesn't return logs when the job just started.
+        # - We need to retry because sometimes the /logs doesn't return logs when the job just started.
         #   (for example it can return only two lines: one for "Job started" and one empty line)
         # - Timeouts can happen in case of build errors
         # - ChunkedEncodingError can happen in case of stopped logging in the middle of streaming
@@ -52,7 +52,7 @@ class LogsCommand(BaseCommand):
         while True:
             try:
                 resp = requests.get(
-                    f"https://huggingface.co/api/jobs/{username}/{self.job_id}/logs-stream",
+                    f"https://huggingface.co/api/jobs/{username}/{self.job_id}/logs",
                     headers=headers,
                     stream=True,
                     timeout=120,
