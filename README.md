@@ -14,12 +14,13 @@ pip install hfjobs
 usage: hfjobs <command> [<args>]
 
 positional arguments:
-  {inspect,logs,ps,run}
+  {inspect,logs,ps,run,cancel}
                         hfjobs command helpers
     inspect             Display detailed information on one or more Jobs
     logs                Fetch the logs of a Job
     ps                  List Jobs
     run                 Run a Job
+    cancel              Cancel a Job
 
 options:
   -h, --help            show this help message and exit
@@ -30,11 +31,11 @@ options:
 ### Usage
 
 ```
-usage: hfjobs <command> [<args>] run [-h] [-e ENV] [--env-file ENV_FILE] [--flavor FLAVOR] [-d] [--token TOKEN] dockerImage ...
+usage: hfjobs <command> [<args>] run [-h] [-e ENV] [-s SECRET] [--env-file ENV_FILE] [--secret-env-file SECRET_ENV_FILE] [--flavor FLAVOR] [--timeout TIMEOUT] [-d] [--token TOKEN] dockerImage ...
 
 positional arguments:
-  dockerImage          The Docker image to use.
-  command              The command to run.
+  dockerImage           The Docker image to use.
+  command               The command to run.
 
 options:
   -h, --help            show this help message and exit
@@ -84,6 +85,7 @@ $ hfjobs run hf.co/spaces/lhoestq/duckdb duckdb -c "select 'hello world'"
 $ hfjobs run --flavor t4-small pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel python -c "import torch; print(torch.tensor([42]).to('cuda'))"
 tensor([42], device='cuda:0')
 ```
+
 
 ## Hardware
 
