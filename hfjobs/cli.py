@@ -4,6 +4,7 @@ from .commands.inspect import InspectCommand
 from .commands.logs import LogsCommand
 from .commands.ps import PsCommand
 from .commands.run import RunCommand
+from .commands.stop import StopCommand
 
 def main():
     
@@ -15,6 +16,7 @@ def main():
     LogsCommand.register_subcommand(commands_parser)
     PsCommand.register_subcommand(commands_parser)
     RunCommand.register_subcommand(commands_parser)
+    StopCommand.register_subcommand(commands_parser)
 
     # Let's go
     args = parser.parse_args()
