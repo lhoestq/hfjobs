@@ -86,7 +86,6 @@ $ hfjobs run --flavor t4-small pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel pytho
 tensor([42], device='cuda:0')
 ```
 
-
 ## Hardware
 
 Available `--flavor` options:
