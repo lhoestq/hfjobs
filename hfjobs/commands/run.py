@@ -126,6 +126,8 @@ class RunCommand(BaseCommand):
 
         # Always print the job ID to the user
         print(f"Job started with ID: {job_id}")
+        print(f"View at: https://huggingface.co/jobs/{username}/{job_id}")
+
         if self.detach:
             return
 
