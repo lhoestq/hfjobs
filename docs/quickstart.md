@@ -2,48 +2,6 @@
 
 This quickstart will walk you through using `hfjobs` to run compute jobs on Hugging Face's infrastructure. By the end, you'll be running GPU workloads with simple commands.
 
-## Table of Contents
-
-- [hfjobs Quickstart Guide](#hfjobs-quickstart-guide)
-  - [Table of Contents](#table-of-contents)
-  - [Installation \& Setup](#installation--setup)
-    - [Requirements](#requirements)
-    - [Install hfjobs](#install-hfjobs)
-    - [Verify Installation](#verify-installation)
-  - [Authentication](#authentication)
-  - [Your First Job](#your-first-job)
-    - [Understanding the Output](#understanding-the-output)
-    - [Watch Logs Stream in Real-Time](#watch-logs-stream-in-real-time)
-    - [Run in Detached Mode](#run-in-detached-mode)
-  - [Running Commands and Code](#running-commands-and-code)
-    - [Understanding the Execution Model](#understanding-the-execution-model)
-    - [Execution Approaches](#execution-approaches)
-      - [1. Direct Commands](#1-direct-commands)
-      - [2. Download and Run](#2-download-and-run)
-      - [3. UV Scripts](#3-uv-scripts)
-      - [4. Hugging Face Spaces](#4-hugging-face-spaces)
-    - [Which Approach Should You Use?](#which-approach-should-you-use)
-  - [Choosing Your Container Image](#choosing-your-container-image)
-    - [Quick Guide](#quick-guide)
-    - [Common Images](#common-images)
-    - [GPU Considerations](#gpu-considerations)
-  - [Working with Different Hardware](#working-with-different-hardware)
-    - [Run on GPU](#run-on-gpu)
-    - [Check GPU Memory](#check-gpu-memory)
-    - [Available Hardware Options](#available-hardware-options)
-  - [Environment Variables and Secrets](#environment-variables-and-secrets)
-    - [Environment Variables](#environment-variables)
-    - [Secrets](#secrets)
-  - [Managing Your Jobs](#managing-your-jobs)
-    - [List Your Jobs](#list-your-jobs)
-    - [View Job Logs](#view-job-logs)
-    - [Cancel a Job](#cancel-a-job)
-  - [It's not just for Python!](#its-not-just-for-python)
-    - [Compile and Run Rust](#compile-and-run-rust)
-    - [Run Node.js Applications](#run-nodejs-applications)
-    - [Use CLI Tools](#use-cli-tools)
-  - [Next Steps](#next-steps)
-
 ## Installation & Setup
 
 ### Requirements
