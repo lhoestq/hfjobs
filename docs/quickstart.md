@@ -329,6 +329,8 @@ print(f'Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.0f} GB'
 
 ### Available Hardware Options
 
+Some of the most common hardware flavors you can use with hfjobs:
+
 | Flavor        | Hardware        | GPU Memory | Best For                             |
 | ------------- | --------------- | ---------- | ------------------------------------ |
 | `cpu-basic`   | CPU only        | N/A        | Light processing, debugging          |
@@ -338,6 +340,8 @@ print(f'Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.0f} GB'
 | `a10g-small`  | NVIDIA A10G     | 24 GB      | Medium training jobs                 |
 | `a10g-large`  | NVIDIA A10G     | 24 GB      | Larger batch sizes                   |
 | `a100-large`  | NVIDIA A100     | 80 GB      | Large model training                 |
+
+You can find the full list of available flavours in the [Hub Docs](https://huggingface.co/docs/hub/spaces-gpus#hardware-specs)
 
 ## Environment Variables and Secrets
 
