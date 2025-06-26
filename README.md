@@ -97,7 +97,7 @@ Running this will show the following output!
 This code ran with the following GPU: NVIDIA A10G
 ```
 
-That's it! You're now running code on Hugging Face's infrastructure. For more detailed information, see the sections below.
+That's it! You're now running code on Hugging Face's infrastructure. For more detailed information checkout the [Quickstart Guide](docs/quickstart.md).
 
 ## Common Use Cases
 
