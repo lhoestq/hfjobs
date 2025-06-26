@@ -27,7 +27,7 @@ hfjobs run hf.co/spaces/lhoestq/duckdb duckdb -c "select 'hello world'"
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.9 or higher
 - A Hugging Face account with access to compute (currently in testing for HF staff)
 
 ## Installation
