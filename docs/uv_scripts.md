@@ -83,185 +83,222 @@ UV scripts are particularly powerful for machine learning tasks. That `train.py`
 
 You can think of UV scripts as "portable cloud functions" - your Python script becomes a complete, runnable unit that hfjobs can execute on any hardware with one command.
 
-## Understanding UV Scripts
+## Getting Started
 
-In this section, we'll cover the basics of uv scripts. To avoid duplicating the official [uv documentation for scripts](https://docs.astral.sh/uv/guides/scripts/#declaring-script-dependencies), we'll focus on the key aspects that are relevant for running scripts with hfjobs.
+Let's create and run your first UV script on Hugging Face's infrastructure.
 
-UV scripts are Python files that include a special header to declare dependencies and metadata. We can create a template UV script using the `uv init` command with the `--script` flag. This command initializes a new Python script with the necessary UV header:
+### 1. Create a UV Script
+
+First, create a new UV script using the `uv init` command:
 
 ```bash
-uv init --script example.py
+uv init --script process_data.py
 ```
 
-This creates a file named `example.py` with the following header:
+This creates a template script:
 
 ```python
 # /// script
 # requires-python = ">=3.12"
 # dependencies = []
 # ///
+
+def main():
+    print("Hello from UV!")
+
+if __name__ == "__main__":
+    main()
 ```
 
-### Script Header Format
+### 2. Add Dependencies
 
-UV scripts use a special comment block at the top of your Python file to declare metadata. This header follows a specific format:
-
-```python
-# /// script
-# dependencies = [
-#     "package1",
-#     "package2",
-# ]
-# ///
-```
-
-Key points:
-
-- The header starts with `# /// script` and ends with `# ///`
-- Everything between these markers uses TOML format
-- The `dependencies` field is required (even if empty)
-- All lines must be prefixed with `#` and a space
-
-A minimal UV script looks like this:
-
-```python
-# /// script
-# dependencies = []
-# ///
-
-print("Hello, world!")
-```
-
-### Dependency Declaration
-
-The easiest way to add dependencies to your UV script is using the `uv add` command:
+Add the packages your script needs:
 
 ```bash
-# Add a single package
-uv add --script script.py numpy
+# For data processing
+uv add --script process_data.py pandas pyarrow requests
 
-# Add multiple packages
-uv add --script script.py pandas polars requests
-
-# Add packages with version constraints
-uv add --script script.py "torch>=2.0" "transformers<5.0"
-
-# Add from a requirements file
-uv add --script script.py --requirements requirements.txt
+# For machine learning
+uv add --script process_data.py torch transformers datasets
 ```
 
-This automatically updates your script header with the dependencies:
+Your script header now includes the dependencies:
 
 ```python
 # /// script
+# requires-python = ">=3.12"
 # dependencies = [
-#     "numpy",
 #     "pandas",
-#     "polars",
+#     "pyarrow",
 #     "requests",
-#     "torch>=2.0",
-#     "transformers<5.0",
+#     "torch",
+#     "transformers",
+#     "datasets",
 # ]
 # ///
 ```
 
-**Understanding the syntax:**
+### 3. Test Locally
 
-Dependencies work like `requirements.txt` entries:
-
-- `"numpy"` - Latest version
-- `"pandas>=2.0.0"` - Minimum version
-- `"torch==2.1.0"` - Exact version
-- `"transformers>=4.30,<5.0"` - Version range
-
-### Using alternative package indexes
-
-Quite often in an ML context, you may want to use a package index other than PyPI, such as the vLLM wheels index. You can specify an alternative index using the `--index` flag with `uv add`:
+Make sure your script works:
 
 ```bash
-uv add --index "https://wheels.vllm.ai/nightly" --script example.py vllm
+uv run process_data.py
 ```
 
-This will result in adding the following to your script header:
+### 4. Upload to Hugging Face Hub
 
-```python
-# /// script
-# requires-python = ">=3.12"
-# dependencies = [
-#     "vllm",
-# ]
-#
-# [[tool.uv.index]]
-# url = "https://wheels.vllm.ai/nightly"
-# ///
+Create a dataset repository for your scripts:
+
+```bash
+# Create a dataset repo (only needed once)
+huggingface-cli repo create my-uv-scripts --type dataset
+
+# Upload your script
+huggingface-cli upload my-uv-scripts process_data.py scripts/process_data.py --repo-type dataset
 ```
 
-This will let uv know to use the specified index when installing dependencies for this script.
+### 5. Run with hfjobs
 
-See [uv docs](https://docs.astral.sh/uv/guides/scripts/#using-alternative-package-indexes) for more details on using alternative package indexes.
+Now run your script on HF infrastructure:
 
-### Python Version Requirements
+```bash
+# CPU execution
+hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "uv run https://huggingface.co/datasets/{your-username}/my-uv-scripts/raw/main/scripts/process_data.py"
 
-You can specify which Python version your script requires using the `requires-python` field:
-
-```python
-# /// script
-# requires-python = ">=3.8"
-# dependencies = ["numpy", "pandas"]
-# ///
+# GPU execution
+hfjobs run --flavor gpu-nvidia-small ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "uv run https://huggingface.co/datasets/{your-username}/my-uv-scripts/raw/main/scripts/process_data.py"
 ```
 
-## Running Scripts with UV and hfjobs
+That's it! Your script is running on Hugging Face's infrastructure with all dependencies automatically installed.
 
-### Making the script available (TODO better name)
-
-- Running a public script
-- uploading script to HF
+## Key Concepts for Running UV Scripts
 
 ### Basic Command Pattern
 
-### Choosing Docker Images
+The pattern for running UV scripts with hfjobs is:
 
-### Environment Setup
-
-## Examples
-
-### Example 1: Simple Script (CPU)
-
-### Example 2: Data Processing with Dependencies
-
-### Example 3: GPU Workload with ML Libraries
-
-### Example 4: Production vLLM Example
-
-## Best Practices
-
-### Script Design for Cloud
-
-### Error Handling
-
-### Resource Management
-
-## Common Patterns
-
-### Data Input/Output
-
-### Authentication
-
-### Monitoring Progress
-
-## Debugging and Troubleshooting
-
-### Common Issues
-
-### Testing Locally vs Cloud
-
-## Reference
-
-### Quick Command Templates
-
-### Links to More Examples
-
+```bash
+hfjobs run <docker_image> /bin/bash -c "uv run <script_url> <args>"
 ```
 
+For most cases, use the lightweight UV image:
+- **`ghcr.io/astral-sh/uv:debian-slim`** - Fast startup, includes UV and Python
+
+### Common Options
+
+**Running on GPU:**
+```bash
+hfjobs run --flavor gpu-nvidia-small ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "uv run https://huggingface.co/datasets/{username}/my-scripts/raw/main/train.py"
 ```
+
+**Passing secrets (like HF token):**
+```bash
+hfjobs run --secret HF_TOKEN=$HF_TOKEN ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "uv run https://huggingface.co/datasets/{username}/my-scripts/raw/main/upload.py"
+```
+
+**Setting environment variables:**
+```bash
+hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "export HOME=/tmp && uv run your_script.py"
+```
+
+For advanced topics like Docker image selection, environment setup, and system dependencies, see the [advanced guide](./uv_scripts_advanced.md).
+
+## Example: Process a Hugging Face Dataset
+
+Here's a complete example that downloads and analyzes a dataset:
+
+```python
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "datasets",
+#     "pandas",
+# ]
+# ///
+
+import argparse
+from datasets import load_dataset
+import pandas as pd
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dataset", help="Dataset name (e.g., 'imdb')")
+    parser.add_argument("--max-samples", type=int, default=100)
+    args = parser.parse_args()
+    
+    # Load dataset
+    print(f"Loading {args.dataset}...")
+    ds = load_dataset(args.dataset, split=f"train[:{args.max_samples}]")
+    
+    # Basic analysis
+    df = pd.DataFrame(ds)
+    print(f"\nDataset shape: {df.shape}")
+    print(f"Columns: {list(df.columns)}")
+    print(f"\nFirst example:")
+    print(df.iloc[0].to_dict())
+
+if __name__ == "__main__":
+    main()
+```
+
+Run this example:
+```bash
+# Upload to HF Hub
+huggingface-cli upload my-uv-scripts analyze.py scripts/analyze.py --repo-type dataset
+
+# Run on CPU
+hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "uv run https://huggingface.co/datasets/{username}/my-uv-scripts/raw/main/scripts/analyze.py imdb --max-samples 1000"
+```
+
+## Quick Reference
+
+### Essential Commands
+
+```bash
+# Create UV script
+uv init --script myscript.py
+
+# Add dependencies  
+uv add --script myscript.py pandas torch
+
+# Test locally
+uv run myscript.py
+
+# Upload to HF
+huggingface-cli upload my-uv-scripts myscript.py scripts/myscript.py --repo-type dataset
+
+# Run on CPU
+hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "uv run https://huggingface.co/datasets/{username}/my-uv-scripts/raw/main/scripts/myscript.py"
+
+# Run on GPU
+hfjobs run --flavor gpu-nvidia-small ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "uv run https://huggingface.co/datasets/{username}/my-uv-scripts/raw/main/scripts/myscript.py"
+
+# With secrets
+hfjobs run --secret HF_TOKEN=$HF_TOKEN ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
+  "uv run your_script.py"
+```
+
+### Getting Help
+
+- **UV documentation**: https://docs.astral.sh/uv/
+- **hfjobs documentation**: https://github.com/huggingface/hfjobs
+- **This guide (advanced topics)**: [uv_scripts_advanced.md](./uv_scripts_advanced.md)
+
+## Next Steps
+
+You now have everything you need to run UV scripts on Hugging Face's infrastructure! Try:
+
+1. Modifying the example for your use case
+2. Exploring GPU options for ML workloads  
+3. Building a collection of reusable scripts
+
+Happy scripting! 🚀
