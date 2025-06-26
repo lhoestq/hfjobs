@@ -2,7 +2,7 @@
 
 Run compute jobs on Hugging Face infrastructure with a familiar Docker-like interface!
 
-`hfjobs` is a command-line tool that lets you run anything on Hugging Face's infrastructure (including GPUs and TPUs!) with simple commands. Think `docker run`, but for running code on A100s.
+hfjobs is a command-line tool that lets you run anything on Hugging Face's infrastructure (including GPUs and TPUs!) with simple commands. Think `docker run`, but for running code on A100s.
 
 ```bash
 # Directly run Python code
@@ -44,7 +44,7 @@ Or with [uv](https://docs.astral.sh/uv/):
 uv pip install hfjobs
 ```
 
-It's also possible to run `hfjobs` without installing it, using [uv run](https://docs.astral.sh/uv/):
+It's also possible to run hfjobs without installing it, using [uv run](https://docs.astral.sh/uv/):
 
 ```bash
 uv run hfjobs --help
