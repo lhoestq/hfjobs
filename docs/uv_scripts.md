@@ -85,11 +85,131 @@ You can think of UV scripts as "portable cloud functions" - your Python script b
 
 ## Understanding UV Scripts
 
+In this section, we'll cover the basics of uv scripts. To avoid duplicating the official [uv documentation for scripts](https://docs.astral.sh/uv/guides/scripts/#declaring-script-dependencies), we'll focus on the key aspects that are relevant for running scripts with hfjobs.
+
+UV scripts are Python files that include a special header to declare dependencies and metadata. We can create a template UV script using the `uv init` command with the `--script` flag. This command initializes a new Python script with the necessary UV header:
+
+```bash
+uv init --script example.py
+```
+
+This creates a file named `example.py` with the following header:
+
+```python
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
+```
+
 ### Script Header Format
+
+UV scripts use a special comment block at the top of your Python file to declare metadata. This header follows a specific format:
+
+```python
+# /// script
+# dependencies = [
+#     "package1",
+#     "package2",
+# ]
+# ///
+```
+
+Key points:
+
+- The header starts with `# /// script` and ends with `# ///`
+- Everything between these markers uses TOML format
+- The `dependencies` field is required (even if empty)
+- All lines must be prefixed with `#` and a space
+
+A minimal UV script looks like this:
+
+```python
+# /// script
+# dependencies = []
+# ///
+
+print("Hello, world!")
+```
 
 ### Dependency Declaration
 
+The easiest way to add dependencies to your UV script is using the `uv add` command:
+
+```bash
+# Add a single package
+uv add --script script.py numpy
+
+# Add multiple packages
+uv add --script script.py pandas polars requests
+
+# Add packages with version constraints
+uv add --script script.py "torch>=2.0" "transformers<5.0"
+
+# Add from a requirements file
+uv add --script script.py --requirements requirements.txt
+```
+
+This automatically updates your script header with the dependencies:
+
+```python
+# /// script
+# dependencies = [
+#     "numpy",
+#     "pandas",
+#     "polars",
+#     "requests",
+#     "torch>=2.0",
+#     "transformers<5.0",
+# ]
+# ///
+```
+
+**Understanding the syntax:**
+
+Dependencies work like `requirements.txt` entries:
+
+- `"numpy"` - Latest version
+- `"pandas>=2.0.0"` - Minimum version
+- `"torch==2.1.0"` - Exact version
+- `"transformers>=4.30,<5.0"` - Version range
+
+### Using alternative package indexes
+
+Quite often in an ML context, you may want to use a package index other than PyPI, such as the vLLM wheels index. You can specify an alternative index using the `--index` flag with `uv add`:
+
+```bash
+uv add --index "https://wheels.vllm.ai/nightly" --script example.py vllm
+```
+
+This will result in adding the following to your script header:
+
+```python
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "vllm",
+# ]
+#
+# [[tool.uv.index]]
+# url = "https://wheels.vllm.ai/nightly"
+# ///
+```
+
+This will let uv know to use the specified index when installing dependencies for this script.
+
+See [uv docs](https://docs.astral.sh/uv/guides/scripts/#using-alternative-package-indexes) for more details on using alternative package indexes.
+
 ### Python Version Requirements
+
+You can specify which Python version your script requires using the `requires-python` field:
+
+```python
+# /// script
+# requires-python = ">=3.8"
+# dependencies = ["numpy", "pandas"]
+# ///
+```
 
 ## Running Scripts with UV and hfjobs
 
@@ -141,3 +261,7 @@ You can think of UV scripts as "portable cloud functions" - your Python script b
 ### Quick Command Templates
 
 ### Links to More Examples
+
+```
+
+```
