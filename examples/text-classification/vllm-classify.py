@@ -2,9 +2,10 @@
 # requires-python = ">=3.10"
 # dependencies = [
 #     "datasets",
+#     "hf-transfer",
+#     "hf-xet",
 #     "httpx",
 #     "huggingface-hub",
-#     "setuptools",
 #     "toolz",
 #     "transformers",
 #     "vllm",
@@ -28,6 +29,7 @@ from tqdm.auto import tqdm
 from vllm import LLM
 import vllm
 import os
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -70,18 +72,22 @@ def get_top_label(output, label_map: Optional[dict[str, str]] = None):
     return label, top_prob
 
 
-def format_prompts(dataset, inference_column, inference_columns, prompt_template, column_separator):
+def format_prompts(
+    dataset, inference_column, inference_columns, prompt_template, column_separator
+):
     """Format prompts based on the provided arguments."""
-    
+
     if inference_columns:
         # Multiple columns specified
-        columns = [col.strip() for col in inference_columns.split(',')]
-        
+        columns = [col.strip() for col in inference_columns.split(",")]
+
         # Validate columns exist
         for col in columns:
             if col not in dataset.column_names:
-                raise ValueError(f"Column '{col}' not found in dataset. Available: {dataset.column_names}")
-        
+                raise ValueError(
+                    f"Column '{col}' not found in dataset. Available: {dataset.column_names}"
+                )
+
         if prompt_template:
             # Use template formatting
             prompts = []
@@ -89,23 +95,24 @@ def format_prompts(dataset, inference_column, inference_columns, prompt_template
                 format_dict = {col: row[col] for col in columns}
                 try:
                     # Replace \\n with actual newlines in the template
-                    template = prompt_template.replace('\\n', '\n')
+                    template = prompt_template.replace("\\n", "\n")
                     prompt = template.format(**format_dict)
                     prompts.append(prompt)
                 except KeyError as e:
-                    raise ValueError(f"Template placeholder {e} not found in columns: {columns}")
+                    raise ValueError(
+                        f"Template placeholder {e} not found in columns: {columns}"
+                    ) from e
         else:
             # Join columns with separator
             prompts = [
                 column_separator.join(str(row[col]) for col in columns)
                 for row in dataset
             ]
-    else:
-        # Single column (backward compatible)
-        if inference_column not in dataset.column_names:
-            raise ValueError(f"Column '{inference_column}' not found in dataset")
+    elif inference_column in dataset.column_names:
         prompts = dataset[inference_column]
-    
+
+    else:
+        raise ValueError(f"Column '{inference_column}' not found in dataset")
     return prompts
 
 
@@ -125,12 +132,23 @@ def main(
         login(token=HF_TOKEN)
     else:
         raise ValueError("HF_TOKEN is not set")
-    llm = LLM(model=hub_model_id, task="classify")
+    # Auto-detect number of GPUs
+    num_gpus = torch.cuda.device_count()
+    logger.info(f"Detected {num_gpus} GPU(s)")
+
+    # Initialize LLM with tensor parallel size equal to number of GPUs
+    llm = LLM(
+        model=hub_model_id,
+        task="classify",
+        tensor_parallel_size=num_gpus if num_gpus > 0 else 1,
+    )
     id2label = get_model_id2label(hub_model_id)
     dataset = load_dataset(src_dataset_hub_id, split="train")
-    
+
     # Format prompts based on arguments
-    prompts = format_prompts(dataset, inference_column, inference_columns, prompt_template, column_separator)
+    prompts = format_prompts(
+        dataset, inference_column, inference_columns, prompt_template, column_separator
+    )
     logger.info(f"Formatted {len(prompts)} prompts")
     if prompts:
         logger.info(f"Example prompt: {prompts[0][:200]}...")
@@ -152,10 +170,10 @@ def main(
             "prob", [output.outputs.probs for output in outputs]
         )
     dataset.push_to_hub(output_dataset_hub_id, token=HF_TOKEN)
-    
+
     # Create and push dataset card
     from huggingface_hub import DatasetCard
-    
+
     card_content = f"""---
 tags:
 - text-classification
@@ -169,7 +187,7 @@ using [{hub_model_id}](https://huggingface.co/{hub_model_id}).
 
 ## Prompt Format
 """
-    
+
     if inference_columns:
         card_content += f"Columns used: `{inference_columns}`\n\n"
         if prompt_template:
@@ -178,15 +196,17 @@ using [{hub_model_id}](https://huggingface.co/{hub_model_id}).
             card_content += f"Columns joined with: `{column_separator}`\n\n"
     else:
         card_content += f"Column used: `{inference_column}`\n\n"
-    
+
     if id2label:
         card_content += f"\n## Labels\n\n{', '.join([f'`{label}`' for label in id2label.values()])}\n"
-    
-    card_content += f"\n## Processing Details\n\n- Batch size: {batch_size:,}\n- Date: {os.popen('date').read().strip()}\n"
-    
+
+    card_content += f"\n## Processing Details\n\n- Batch size: {batch_size:,}\n- GPUs used: {num_gpus}\n- Date: {os.popen('date').read().strip()}\n"
+
     card = DatasetCard(card_content)
     card.push_to_hub(output_dataset_hub_id, repo_type="dataset", token=HF_TOKEN)
-    logger.info(f"Dataset and card pushed to: https://huggingface.co/datasets/{output_dataset_hub_id}")
+    logger.info(
+        f"Dataset and card pushed to: https://huggingface.co/datasets/{output_dataset_hub_id}"
+    )
 
 
 if __name__ == "__main__":
@@ -220,18 +240,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--inference-columns",
         type=str,
-        help="Comma-separated list of columns to combine (e.g., 'title,abstract')"
+        help="Comma-separated list of columns to combine (e.g., 'title,abstract')",
     )
     parser.add_argument(
         "--prompt-template",
         type=str,
-        help="Template string with placeholders (e.g., 'Title: {title}\\nAbstract: {abstract}')"
+        help="Template string with placeholders (e.g., 'Title: {title}\\nAbstract: {abstract}')",
     )
     parser.add_argument(
         "--column-separator",
         type=str,
         default=" ",
-        help="Separator when joining columns without template (default: space)"
+        help="Separator when joining columns without template (default: space)",
     )
     parser.add_argument(
         "--batch-size",
