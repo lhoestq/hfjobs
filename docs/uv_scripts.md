@@ -4,7 +4,7 @@ This guide explains how to use uv to run scripts with hfjobs.
 
 ## What is UV?
 
-UV is a Python package manager that can run Python scripts. The simplest way to use UV with hfjobs is to run any Python script:
+[UV](https://docs.astral.sh/uv) is a Python package manager that can run Python scripts. The simplest way to use UV with hfjobs is to run any Python script:
 
 ```bash
 # Run a script from a URL
@@ -14,6 +14,10 @@ hfjobs run ghcr.io/astral-sh/uv:debian-slim uv run https://example.com/script.py
 This works with any Python script - no special setup required!
 
 On its own, this isn't very exciting; you can also run a Python script directly with Python! One of the features that makes UV more powerful is the ability to declare dependencies directly in your Python scripts, which allows you to run them without needing to install any dependencies manually.
+
+### Install UV
+
+See [the UV documentation](https://docs.astral.sh/uv/installation/) for up to date installation instructions.
 
 ### UV Scripts: Adding Dependencies
 
