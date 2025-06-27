@@ -56,7 +56,7 @@ We can also run uv scripts via a URL:
 uv run https://raw.githubusercontent.com/davanstrien/hfjobs/refs/heads/quickstart-only/docs/examples/hello_world_uv.py "Hello from my CLI, I arrived from the internet via a URL!"
 ```
 
-Now, to run it on Hugging Face infrastructure using hfjobs we would simply need to instead run:
+Now, to run it on Hugging Face infrastructure using hfjobs we would simply need to run instead:
 
 <!-- TODO update URLs once examples are published -->
 
