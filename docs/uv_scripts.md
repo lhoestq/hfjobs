@@ -103,7 +103,7 @@ This creates a template script:
 
 ```python
 # /// script
-# requires-python = ">=3.12"
+# requires-python = ">=3.8"
 # dependencies = []
 # ///
 
@@ -130,7 +130,7 @@ Your script header now includes the dependencies:
 
 ```python
 # /// script
-# requires-python = ">=3.12"
+# requires-python = ">=3.8"
 # dependencies = [
 #     "pandas",
 #     "pyarrow",
@@ -169,11 +169,11 @@ Now run your script on HF infrastructure:
 ```bash
 # CPU execution
 hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
-  "uv run https://huggingface.co/datasets/{your-username}/my-uv-scripts/raw/main/scripts/process_data.py"
+  "uv run https://huggingface.co/datasets/{username}/my-uv-scripts/raw/main/scripts/process_data.py"
 
 # GPU execution
 hfjobs run --flavor gpu-nvidia-small ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
-  "uv run https://huggingface.co/datasets/{your-username}/my-uv-scripts/raw/main/scripts/process_data.py"
+  "uv run https://huggingface.co/datasets/{username}/my-uv-scripts/raw/main/scripts/process_data.py"
 ```
 
 That's it! Your script is running on Hugging Face's infrastructure with all dependencies automatically installed.
@@ -225,7 +225,7 @@ Here's a complete example that downloads and analyzes a dataset:
 
 ```python
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.8"
 # dependencies = [
 #     "datasets",
 #     "pandas",
@@ -270,14 +270,17 @@ hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
 
 You should see output like:
 
-```python
+```
 Loading imdb...
-train-00000-of-00001.parquet: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 21.0M/21.0M [00:00<00:00, 64.4MB/s]
-...
+Downloading readme: 100%|██████████| 7.83k/7.83k [00:00<00:00, 3.91MB/s]
+Downloading data: 100%|████████████| 21.0M/21.0M [00:00<00:00, 64.4MB/s]
+Generating train split: 25000 examples [00:00, 68054.94 examples/s]
+
 Dataset shape: (100, 2)
 Columns: ['text', 'label']
+
 First example:
-...
+{'text': 'I rented I AM CURIOUS-YELLOW from my video store because of all the controversy that surrounded it when it was first released in 1967...', 'label': 0}
 ```
 
 ## Saving Your Results
@@ -296,7 +299,7 @@ Add the `huggingface-hub` library to your script and upload results directly:
 
 ```python
 # /// script
-# requires-python = ">=3.12"
+# requires-python = ">=3.8"
 # dependencies = [
 #     "datasets",
 #     "pandas",
@@ -323,6 +326,24 @@ api.upload_file(
 ### Option 3: Use a directory to store results
 
 You can also write results to a directory and then upload that directory as a dataset. For example if you were saving multiple checkpoints or filtered version of a dataset to a `output` directory you could use `upload_folder` to upload to the hub (or use `upload_large_folder` if you are uploading a large amount of data).
+
+```python
+from huggingface_hub import HfApi
+import os
+
+# Your processing that creates multiple files...
+# e.g., saving to output/checkpoint1.pt, output/checkpoint2.pt, etc.
+
+# Upload the entire directory
+api = HfApi()
+api.upload_folder(
+    folder_path="./output",
+    path_in_repo="experiment_results",
+    repo_id="username/my-experiments",
+    repo_type="dataset",
+    token=os.environ.get("HF_TOKEN")
+)
+```
 
 ## Quick Reference
 
@@ -358,6 +379,7 @@ hfjobs run --secret HF_TOKEN=$HF_TOKEN ghcr.io/astral-sh/uv:debian-slim /bin/bas
 
 - **UV documentation**: https://docs.astral.sh/uv/
 - **hfjobs documentation**: https://github.com/huggingface/hfjobs
+- **This guide (advanced topics)**: [uv_scripts_advanced.md](./uv_scripts_advanced.md)
 
 ## Next Steps
 
