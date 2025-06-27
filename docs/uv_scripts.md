@@ -4,7 +4,7 @@ This guide explains how to use uv to run scripts with hfjobs.
 
 ## What is UV?
 
-UV is a Python package manager that can run Python scripts directly. The simplest way to use UV with hfjobs is to run any Python script:
+UV is a Python package manager that can run Python scripts. The simplest way to use UV with hfjobs is to run any Python script:
 
 ```bash
 # Run a script from a URL
@@ -13,7 +13,7 @@ hfjobs run ghcr.io/astral-sh/uv:debian-slim uv run https://example.com/script.py
 
 This works with any Python script - no special setup required!
 
-On its own, this isn't very exciting, you can also run a python script directly with Python! One of the things that makes uv more powerful is the ability to declare dependencies directly in your Python scripts, which allows you to run them without needing to install anything manually.
+On its own, this isn't very exciting; you can also run a Python script directly with Python! One of the features that makes UV more powerful is the ability to declare dependencies directly in your Python scripts, which allows you to run them without needing to install any dependencies manually.
 
 ### UV Scripts: Adding Dependencies
 
@@ -185,23 +185,27 @@ hfjobs run <docker_image> /bin/bash -c "uv run <script_url> <args>"
 ```
 
 For most cases, use the lightweight UV image:
+
 - **`ghcr.io/astral-sh/uv:debian-slim`** - Fast startup, includes UV and Python
 
 ### Common Options
 
 **Running on GPU:**
+
 ```bash
 hfjobs run --flavor gpu-nvidia-small ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
   "uv run https://huggingface.co/datasets/{username}/my-scripts/raw/main/train.py"
 ```
 
 **Passing secrets (like HF token):**
+
 ```bash
 hfjobs run --secret HF_TOKEN=$HF_TOKEN ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
   "uv run https://huggingface.co/datasets/{username}/my-scripts/raw/main/upload.py"
 ```
 
 **Setting environment variables:**
+
 ```bash
 hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
   "export HOME=/tmp && uv run your_script.py"
@@ -231,11 +235,11 @@ def main():
     parser.add_argument("dataset", help="Dataset name (e.g., 'imdb')")
     parser.add_argument("--max-samples", type=int, default=100)
     args = parser.parse_args()
-    
+
     # Load dataset
     print(f"Loading {args.dataset}...")
     ds = load_dataset(args.dataset, split=f"train[:{args.max_samples}]")
-    
+
     # Basic analysis
     df = pd.DataFrame(ds)
     print(f"\nDataset shape: {df.shape}")
@@ -248,6 +252,7 @@ if __name__ == "__main__":
 ```
 
 Run this example:
+
 ```bash
 # Upload to HF Hub
 huggingface-cli upload my-uv-scripts analyze.py scripts/analyze.py --repo-type dataset
@@ -265,7 +270,7 @@ hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
 # Create UV script
 uv init --script myscript.py
 
-# Add dependencies  
+# Add dependencies
 uv add --script myscript.py pandas torch
 
 # Test locally
@@ -298,7 +303,7 @@ hfjobs run --secret HF_TOKEN=$HF_TOKEN ghcr.io/astral-sh/uv:debian-slim /bin/bas
 You now have everything you need to run UV scripts on Hugging Face's infrastructure! Try:
 
 1. Modifying the example for your use case
-2. Exploring GPU options for ML workloads  
+2. Exploring GPU options for ML workloads
 3. Building a collection of reusable scripts
 
 Happy scripting! 🚀
