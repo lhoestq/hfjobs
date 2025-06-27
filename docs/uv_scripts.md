@@ -62,7 +62,7 @@ uv run https://raw.githubusercontent.com/davanstrien/hfjobs/refs/heads/quickstar
 
 Now, to run it on Hugging Face infrastructure using hfjobs we would simply need to run instead:
 
-<!-- TODO update URLs once examples are published -->
+<!-- TODO: Update these URLs to point to the main branch once the examples are merged and published -->
 
 ```bash
 hfjobs run ghcr.io/astral-sh/uv:debian-slim uv run https://raw.githubusercontent.com/davanstrien/hfjobs/refs/heads/quickstart-only/docs/examples/hello_world_uv.py "Hello from hfjobs!"
@@ -188,6 +188,8 @@ The pattern for running UV scripts with hfjobs is:
 hfjobs run <docker_image> /bin/bash -c "uv run <script_url> <args>"
 ```
 
+The `/bin/bash -c` wrapper allows us to run shell commands (like setting environment variables) before executing the UV script.
+
 For most cases, use the lightweight UV image:
 
 - **`ghcr.io/astral-sh/uv:debian-slim`** - Fast startup, includes UV and Python
@@ -223,7 +225,7 @@ Here's a complete example that downloads and analyzes a dataset:
 
 ```python
 # /// script
-# requires-python = ">=3.12"
+# requires-python = ">=3.11"
 # dependencies = [
 #     "datasets",
 #     "pandas",
@@ -266,6 +268,62 @@ hfjobs run ghcr.io/astral-sh/uv:debian-slim /bin/bash -c \
   "uv run https://huggingface.co/datasets/{username}/my-uv-scripts/raw/main/scripts/analyze.py imdb --max-samples 1000"
 ```
 
+You should see output like:
+
+```python
+Loading imdb...
+train-00000-of-00001.parquet: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 21.0M/21.0M [00:00<00:00, 64.4MB/s]
+...
+Dataset shape: (100, 2)
+Columns: ['text', 'label']
+First example:
+...
+```
+
+## Saving Your Results
+
+When your script runs on Hugging Face infrastructure, any output to stdout is displayed in your terminal. Often though, you don't just want to print results; you want to save them to a file or upload them somewhere.
+
+You can do this in a few ways:
+
+### Option 1: Use existing push_to_hub functionality
+
+The Transformers, TRL, datasets libraries (and many more!) can push results to the Hugging Face Hub directly using their built-in `push_to_hub` functionality. This is the recommended way to save models, datasets, and other artifacts. This means you can use the same code you would use locally to save your results, and it will work seamlessly on Hugging Face's infrastructure.
+
+### Option 2: Upload results using the `huggingface-hub` library
+
+Add the `huggingface-hub` library to your script and upload results directly:
+
+```python
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "datasets",
+#     "pandas",
+#     "huggingface-hub",
+# ]
+# ///
+
+from huggingface_hub import HfApi
+import os
+
+# Your processing code here...
+
+# Upload results
+api = HfApi()
+api.upload_file(
+    path_or_fileobj="results.csv",
+    path_in_repo="outputs/results.csv",
+    repo_id="username/my-results",
+    repo_type="dataset",
+    token=os.environ.get("HF_TOKEN")
+)
+```
+
+### Option 3: Use a directory to store results
+
+You can also write results to a directory and then upload that directory as a dataset. For example if you were saving multiple checkpoints or filtered version of a dataset to a `output` directory you could use `upload_folder` to upload to the hub (or use `upload_large_folder` if you are uploading a large amount of data).
+
 ## Quick Reference
 
 ### Essential Commands
@@ -300,7 +358,6 @@ hfjobs run --secret HF_TOKEN=$HF_TOKEN ghcr.io/astral-sh/uv:debian-slim /bin/bas
 
 - **UV documentation**: https://docs.astral.sh/uv/
 - **hfjobs documentation**: https://github.com/huggingface/hfjobs
-- **This guide (advanced topics)**: [uv_scripts_advanced.md](./uv_scripts_advanced.md)
 
 ## Next Steps
 
