@@ -379,7 +379,6 @@ hfjobs run --secret HF_TOKEN=$HF_TOKEN ghcr.io/astral-sh/uv:debian-slim /bin/bas
 
 - **UV documentation**: https://docs.astral.sh/uv/
 - **hfjobs documentation**: https://github.com/huggingface/hfjobs
-- **This guide (advanced topics)**: [uv_scripts_advanced.md](./uv_scripts_advanced.md)
 
 ## Next Steps
 
