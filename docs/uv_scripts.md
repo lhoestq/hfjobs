@@ -17,7 +17,7 @@ On its own, this isn't very exciting; you can also run a Python script directly 
 
 ### UV Scripts: Adding Dependencies
 
-Let's look at a simple example of a Python script with dependencies. This script relies on the `cowsay` library to print a message:
+Let's look at a simple example of a Python script with dependencies. This script relies on the [`cowsay`](https://pypi.org/project/cowsay/) library to print a message:
 
 ```python
 # /// script
