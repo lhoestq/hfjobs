@@ -137,8 +137,8 @@ options:
 usage: hfjobs <command> [<args>] run [-h] [-e ENV] [-s SECRET] [--env-file ENV_FILE] [--secret-env-file SECRET_ENV_FILE] [--flavor FLAVOR] [--timeout TIMEOUT] [-d] [--token TOKEN] dockerImage ...
 
 positional arguments:
-dockerImage The Docker image to use.
-command The command to run.
+  dockerImage           The Docker image to use.
+  command               The command to run.
 
 options:
   -h, --help            show this help message and exit
