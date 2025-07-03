@@ -115,16 +115,16 @@ That's it! You're now running code on Hugging Face's infrastructure. For more de
 usage: hfjobs <command> [<args>]
 
 positional arguments:
-{inspect,logs,ps,run,cancel}
-hfjobs command helpers
-inspect Display detailed information on one or more Jobs
-logs Fetch the logs of a Job
-ps List Jobs
-run Run a Job
-cancel Cancel a Job
+  {inspect,logs,ps,run,cancel}
+                        hfjobs command helpers
+    inspect             Display detailed information on one or more Jobs
+    logs                Fetch the logs of a Job
+    ps                  List Jobs
+    run                 Run a Job
+    cancel              Cancel a Job
 
 options:
--h, --help show this help message and exit
+  -h, --help            show this help message and exit
 
 ```
 
@@ -141,17 +141,17 @@ dockerImage The Docker image to use.
 command The command to run.
 
 options:
--h, --help show this help message and exit
--e ENV, --env ENV Set environment variables.
--s SECRET, --secret SECRET
-Set secret environment variables.
---env-file ENV_FILE Read in a file of environment variables.
---secret-env-file SECRET_ENV_FILE
-Read in a file of secret environment variables.
---flavor FLAVOR Flavor for the hardware, as in HF Spaces.
---timeout TIMEOUT Max duration: int/float with s (seconds, default), m (minutes), h (hours) or d (days).
--d, --detach Run the Job in the background and print the Job ID.
---token TOKEN A User Access Token generated from https://huggingface.co/settings/tokens
+  -h, --help            show this help message and exit
+  -e ENV, --env ENV     Set environment variables.
+  -s SECRET, --secret SECRET
+                        Set secret environment variables.
+  --env-file ENV_FILE   Read in a file of environment variables.
+  --secret-env-file SECRET_ENV_FILE
+                        Read in a file of secret environment variables.
+  --flavor FLAVOR       Flavor for the hardware, as in HF Spaces.
+  --timeout TIMEOUT     Max duration: int/float with s (seconds, default), m (minutes), h (hours) or d (days).
+  -d, --detach          Run the Job in the background and print the Job ID.
+  --token TOKEN         A User Access Token generated from https://huggingface.co/settings/tokens
 
 ```
 
@@ -186,9 +186,9 @@ $ hfjobs run python:3.12 /bin/bash -c "cd /tmp && wget https://gist.githubuserco
 $ hfjobs run hf.co/spaces/lhoestq/duckdb duckdb -c "select 'hello world'"
 ┌───────────────┐
 │ 'hello world' │
-│ varchar │
+│    varchar    │
 ├───────────────┤
-│ hello world │
+│ hello world   │
 └───────────────┘
 
 ```
