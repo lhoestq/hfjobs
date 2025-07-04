@@ -5,6 +5,7 @@ from .commands.logs import LogsCommand
 from .commands.ps import PsCommand
 from .commands.run import RunCommand
 from .commands.cancel import CancelCommand
+from .commands.uv import UvCommand
 
 def main():
     
@@ -17,6 +18,7 @@ def main():
     PsCommand.register_subcommand(commands_parser)
     RunCommand.register_subcommand(commands_parser)
     CancelCommand.register_subcommand(commands_parser)
+    UvCommand.register_subcommand(commands_parser)
 
     # Let's go
     args = parser.parse_args()
