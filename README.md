@@ -14,14 +14,13 @@ pip install hfjobs
 usage: hfjobs <command> [<args>]
 
 positional arguments:
-  {inspect,logs,ps,run,cancel,scripts}
+  {inspect,logs,ps,run,cancel}
                         hfjobs command helpers
     inspect             Display detailed information on one or more Jobs
     logs                Fetch the logs of a Job
     ps                  List Jobs
     run                 Run a Job
     cancel              Cancel a Job
-    scripts             Share and manage UV scripts on Hugging Face Hub
 
 options:
   -h, --help            show this help message and exit
@@ -96,29 +95,3 @@ Available `--flavor` options:
 - TPU: `v5e-1x1`, `v5e-2x2`, `v5e-2x4`
 
 (updated in 03/25 from Hugging Face [suggested_hardware docs](https://huggingface.co/docs/hub/en/spaces-config-reference))
-
-## UV Script Sharing
-
-Share and run UV scripts easily on the Hugging Face Hub:
-
-### Share a script
-
-```bash
-# Create a new repository with your UV script
-hfjobs scripts init my-awesome-script my-script.py
-
-# Or create a template to get started
-hfjobs scripts init my-new-script
-```
-
-### Run shared scripts
-
-Once shared, anyone can run your script:
-
-```bash
-hfjobs run ghcr.io/astral-sh/uv:python3.12 \
-  uv run https://huggingface.co/datasets/username/my-script/resolve/main/script.py \
-  <arguments>
-```
-
-See the [UV script sharing guide](docs/uv-script-sharing.md) for more details.
