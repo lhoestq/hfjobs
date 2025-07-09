@@ -32,9 +32,9 @@ class UvCommand(BaseCommand):
         run_parser = subparsers.add_parser(
             "run",
             help="Run a UV script on HF infrastructure",
-            description="Upload and execute a UV script using hfjobs",
+            description="Execute a UV script using hfjobs (from local file or URL)",
         )
-        run_parser.add_argument("script", help="UV script to run")
+        run_parser.add_argument("script", help="UV script to run (local file or URL)")
         run_parser.add_argument(
             "script_args", nargs="*", help="Arguments for the script", default=[]
         )
@@ -69,59 +69,69 @@ class UvCommand(BaseCommand):
 
     def _run_script(self, args):
         """Run a UV script on HF infrastructure."""
-        api = HfApi()
+        api = HfApi(token=args.token)
 
-        # Check script exists
-        script_path = Path(args.script)
-        if not script_path.exists():
-            print(f"Error: Script not found: {args.script}")
-            return
+        # Check if script is a URL
+        is_url = args.script.startswith("http://") or args.script.startswith("https://")
 
-        # Determine repository
-        repo_id = self._determine_repository(args, api)
-        is_ephemeral = args.repo is None
+        if is_url:
+            # Direct URL execution - no upload needed
+            script_url = args.script
+            print(f"Running script from URL: {script_url}")
+        else:
+            # Local file - upload to HF
+            script_path = Path(args.script)
+            if not script_path.exists():
+                print(f"Error: Script not found: {args.script}")
+                return
 
-        # Create repo if needed
-        try:
-            api.repo_info(repo_id, repo_type="dataset")
-            if not is_ephemeral:
-                print(f"Using existing repository: {repo_id}")
-        except RepositoryNotFoundError:
-            print(f"Creating repository: {repo_id}")
-            create_repo(repo_id, repo_type="dataset", exist_ok=True)
+            # Determine repository
+            repo_id = self._determine_repository(args, api)
+            is_ephemeral = args.repo is None
 
-        # Upload script
-        print(f"Uploading {script_path.name}...")
-        with open(script_path, "r") as f:
-            script_content = f.read()
+            # Create repo if needed
+            try:
+                api.repo_info(repo_id, repo_type="dataset")
+                if not is_ephemeral:
+                    print(f"Using existing repository: {repo_id}")
+            except RepositoryNotFoundError:
+                print(f"Creating repository: {repo_id}")
+                create_repo(repo_id, repo_type="dataset", exist_ok=True)
 
-        filename = script_path.name
+            # Upload script
+            print(f"Uploading {script_path.name}...")
+            with open(script_path, "r") as f:
+                script_content = f.read()
 
-        api.upload_file(
-            path_or_fileobj=script_content.encode(),
-            path_in_repo=filename,
-            repo_id=repo_id,
-            repo_type="dataset",
-        )
+            filename = script_path.name
 
-        script_url = (
-            f"https://huggingface.co/datasets/{repo_id}/resolve/main/{filename}"
-        )
-        repo_url = f"https://huggingface.co/datasets/{repo_id}"
+            api.upload_file(
+                path_or_fileobj=script_content.encode(),
+                path_in_repo=filename,
+                repo_id=repo_id,
+                repo_type="dataset",
+            )
 
-        print(f"✓ Script uploaded to: {repo_url}/blob/main/{filename}")
+            script_url = (
+                f"https://huggingface.co/datasets/{repo_id}/resolve/main/{filename}"
+            )
+            repo_url = f"https://huggingface.co/datasets/{repo_id}"
 
-        # Create and upload minimal README
-        readme_content = self._create_minimal_readme(repo_id, filename, is_ephemeral)
-        api.upload_file(
-            path_or_fileobj=readme_content.encode(),
-            path_in_repo="README.md",
-            repo_id=repo_id,
-            repo_type="dataset",
-        )
+            print(f"✓ Script uploaded to: {repo_url}/blob/main/{filename}")
 
-        if is_ephemeral:
-            print(f"✓ Temporary repository created: {repo_id}")
+            # Create and upload minimal README
+            readme_content = self._create_minimal_readme(
+                repo_id, filename, is_ephemeral
+            )
+            api.upload_file(
+                path_or_fileobj=readme_content.encode(),
+                path_in_repo="README.md",
+                repo_id=repo_id,
+                repo_type="dataset",
+            )
+
+            if is_ephemeral:
+                print(f"✓ Temporary repository created: {repo_id}")
 
         # Prepare docker image (always use Python 3.12)
         docker_image = "ghcr.io/astral-sh/uv:python3.12-bookworm-slim"

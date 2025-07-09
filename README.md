@@ -227,6 +227,9 @@ hfjobs uv run ml_training.py --flavor gpu-t4-small
 
 # Pass arguments to script
 hfjobs uv run process.py input.csv output.parquet --repo data-scripts
+
+# Run a script directly from a URL
+hfjobs uv run https://huggingface.co/datasets/username/scripts/resolve/main/example.py
 ```
 
 UV scripts are Python scripts that include their dependencies directly in the file using a special comment syntax. This makes them perfect for self-contained tasks that don't require complex project setups. Learn more about UV scripts in the [UV documentation](https://docs.astral.sh/uv/guides/scripts/).
