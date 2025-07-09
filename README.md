@@ -115,13 +115,14 @@ That's it! You're now running code on Hugging Face's infrastructure. For more de
 usage: hfjobs <command> [<args>]
 
 positional arguments:
-  {inspect,logs,ps,run,cancel}
+  {inspect,logs,ps,run,cancel,uv}
                         hfjobs command helpers
     inspect             Display detailed information on one or more Jobs
     logs                Fetch the logs of a Job
     ps                  List Jobs
     run                 Run a Job
     cancel              Cancel a Job
+    uv                  Run UV scripts on Hugging Face infrastructure
 
 options:
   -h, --help            show this help message and exit
@@ -209,3 +210,23 @@ Available `--flavor` options:
 - TPU: `v5e-1x1`, `v5e-2x2`, `v5e-2x4`
 
 (updated in 03/25 from Hugging Face [suggested_hardware docs](https://huggingface.co/docs/hub/en/spaces-config-reference))
+
+## UV Scripts (Experimental)
+
+Run UV scripts (Python scripts with inline dependencies) on HF infrastructure:
+
+```bash
+# Run a UV script (creates temporary repo)
+hfjobs uv run my_script.py
+
+# Run with persistent repo
+hfjobs uv run my_script.py --repo my-uv-scripts
+
+# Run with GPU
+hfjobs uv run ml_training.py --flavor gpu-t4-small
+
+# Pass arguments to script
+hfjobs uv run process.py input.csv output.parquet --repo data-scripts
+```
+
+UV scripts are Python scripts that include their dependencies directly in the file using a special comment syntax. This makes them perfect for self-contained tasks that don't require complex project setups. Learn more about UV scripts in the [UV documentation](https://docs.astral.sh/uv/guides/scripts/).
