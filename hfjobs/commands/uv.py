@@ -71,10 +71,7 @@ class UvCommand(BaseCommand):
         """Run a UV script on HF infrastructure."""
         api = HfApi(token=args.token)
 
-        # Check if script is a URL
-        is_url = args.script.startswith("http://") or args.script.startswith("https://")
-
-        if is_url:
+        if args.script.startswith("http://") or args.script.startswith("https://"):
             # Direct URL execution - no upload needed
             script_url = args.script
             print(f"Running script from URL: {script_url}")
@@ -181,7 +178,7 @@ class UvCommand(BaseCommand):
 
         if is_ephemeral:
             # Ephemeral repository README
-            readme = f"""---
+            return f"""---
 tags:
 - hfjobs-uv-script
 - ephemeral
@@ -201,10 +198,9 @@ hfjobs run ghcr.io/astral-sh/uv:python3.12-bookworm-slim \\
 ---
 *Created with [hfjobs](https://github.com/huggingface/hfjobs)*
 """
-        else:
-            # Named repository README
-            repo_name = repo_id.split("/")[-1]
-            readme = f"""---
+        # Named repository README
+        repo_name = repo_id.split("/")[-1]
+        return f"""---
 tags:
 - hfjobs-uv-script
 ---
@@ -225,5 +221,3 @@ hfjobs uv run {script_name} --repo {repo_name}
 ---
 *Created with [hfjobs](https://github.com/huggingface/hfjobs)*
 """
-
-        return readme
