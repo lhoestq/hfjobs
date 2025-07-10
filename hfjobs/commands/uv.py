@@ -203,6 +203,7 @@ hfjobs run ghcr.io/astral-sh/uv:python3.12-bookworm-slim \\
         return f"""---
 tags:
 - hfjobs-uv-script
+viewer: false
 ---
 
 # {repo_name}
