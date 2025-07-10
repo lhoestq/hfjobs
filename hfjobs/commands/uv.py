@@ -67,6 +67,7 @@ class UvCommand(BaseCommand):
 
     def _run_script(self, args):
         """Run a UV script on HF infrastructure."""
+        print("Note: hfjobs uv run is experimental and subject to change.")
         api = HfApi(token=args.token)
 
         if args.script.startswith("http://") or args.script.startswith("https://"):
