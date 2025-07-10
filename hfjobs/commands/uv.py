@@ -20,8 +20,7 @@ class UvCommand(BaseCommand):
         """Register UV run subcommand."""
         uv_parser = parser.add_parser(
             "uv",
-            help="Run UV scripts on Hugging Face infrastructure",
-            description="Execute UV scripts (Python scripts with inline dependencies) using hfjobs",
+            help="Run UV scripts (Python with inline dependencies) on HF infrastructure",
         )
 
         subparsers = uv_parser.add_subparsers(
@@ -31,8 +30,7 @@ class UvCommand(BaseCommand):
         # Run command only
         run_parser = subparsers.add_parser(
             "run",
-            help="Run a UV script on HF infrastructure",
-            description="Execute a UV script using hfjobs (from local file or URL)",
+            help="Run a UV script (local file or URL) on HF infrastructure",
         )
         run_parser.add_argument("script", help="UV script to run (local file or URL)")
         run_parser.add_argument(
