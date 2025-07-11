@@ -49,6 +49,14 @@ class UvCommand(BaseCommand):
         run_parser.add_argument(
             "-s", "--secret", action="append", help="Secret environment variables"
         )
+        run_parser.add_argument(
+            "--env-file", type=str, help="Read in a file of environment variables."
+        )
+        run_parser.add_argument(
+            "--secret-env-file",
+            type=str,
+            help="Read in a file of secret environment variables.",
+        )
         run_parser.add_argument("--timeout", help="Max duration (e.g., 30s, 5m, 1h)")
         run_parser.add_argument(
             "-d", "--detach", action="store_true", help="Run in background"
@@ -141,8 +149,8 @@ class UvCommand(BaseCommand):
             command=command,
             env=args.env,
             secret=args.secret,
-            env_file=None,
-            secret_env_file=None,
+            env_file=args.env_file,
+            secret_env_file=args.secret_env_file,
             flavor=args.flavor,
             timeout=args.timeout,
             detach=args.detach,
